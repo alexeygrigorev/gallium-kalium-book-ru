@@ -1,0 +1,41 @@
+name: Release EPUB and MOBI
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc calibre
+      
+      - name: Build EPUB
+        run: make epub
+      
+      - name: Build MOBI
+        run: make mobi
+      
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: Release ${{ github.event.inputs.version }}
+          draft: false
+          prerelease: false
+          files: |
+            output/gallium-kalium-book.epub
+            output/gallium-kalium-book.mobi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
